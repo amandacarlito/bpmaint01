@@ -97,6 +97,7 @@
                                         <core:Item text="{Land}" />
                                     </suggestionItems>
                                 </Input-->
+                                <Input id="txtCountry" value="{Country}" editable="{objectView>/edit}"/>
                             </form:fields>
                         </form:FormElement>
                     </form:FormContainer>

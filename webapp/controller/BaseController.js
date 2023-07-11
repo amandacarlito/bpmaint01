@@ -1,8 +1,10 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/core/UIComponent",
-    "sap/m/library"
-], function (Controller, UIComponent, mobileLibrary) {
+    "sap/m/library",
+    "sap/ui/core/routing/History"
+
+], function (Controller, UIComponent, mobileLibrary, History) {
     "use strict";
 
     // shortcut for sap.m.URLHelper
@@ -70,7 +72,23 @@ sap.ui.define([
                 oView.setModel(oModel, "i18n");   
             }
             return oModel.getResourceBundle().getText(sTextId, aArgs);
-        }
+        },
+
+        _onNavBack: function (sPath) {
+            var sPreviousHash = History.getInstance().getPreviousHash(),
+                sHistory = sPath;
+            // sHistory = Utils.returnNow(sPath);
+            if (sPreviousHash === sHistory) {
+                window.history.go(-1);
+            } else {
+                if (!sHistory) {
+                    sap.ui.core.UIComponent.getRouterFor(this).navTo("worklist", true);
+                } else {
+                    sap.ui.core.UIComponent.getRouterFor(this).navTo(sHistory, true);
+                }
+                
+            }
+        },
     });
 
 });
