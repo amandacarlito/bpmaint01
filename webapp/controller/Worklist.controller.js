@@ -3,8 +3,10 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "../model/formatter",
     "sap/ui/model/Filter",
-    "sap/ui/model/FilterOperator"
-], function (BaseController, JSONModel, formatter, Filter, FilterOperator) {
+    "sap/ui/model/FilterOperator",
+    "sap/m/MessageToast",
+    "sap/m/MessageBox"
+], function (BaseController, JSONModel, formatter, Filter, FilterOperator, MessageToast, MessageBox) {
     "use strict";
 
     return BaseController.extend("bpmaint01.bpmaint01.controller.Worklist", {
@@ -30,7 +32,22 @@ sap.ui.define([
                 worklistTableTitle : this.getResourceBundle().getText("worklistTableTitle"),
                 shareSendEmailSubject: this.getResourceBundle().getText("shareSendEmailWorklistSubject"),
                 shareSendEmailMessage: this.getResourceBundle().getText("shareSendEmailWorklistMessage", [location.href]),
-                tableNoDataText : this.getResourceBundle().getText("tableNoDataText")
+                tableNoDataText : this.getResourceBundle().getText("tableNoDataText"),
+                New: {
+                    PartnerType: '',
+                    PartnerName1: '',
+                    PartnerName2: '',
+                    SearchTerm1: '',
+                    SearchTerm2: '',
+                    Street: '',
+                    HouseNumber: '',
+                    District: '',
+                    City: '',
+                    Region: '',
+                    ZipCode: '',
+                    Country: ''
+                },
+                busy: false
             });
             this.setModel(oViewModel, "worklistView");
 
@@ -114,6 +131,43 @@ sap.ui.define([
             oTable.getBinding("items").refresh();
         },
 
+        onCreatePress: function(){
+            this._getDialog().open();
+        },
+
+        onClose: function(){
+            this._getDialog().close();
+        },
+
+        onSavePress: function () {
+            var that = this;
+            let oViewModel = this.getModel("worklistView");
+            let oJson = oViewModel.getProperty("/New");
+            let oModel = this.getOwnerComponent().getModel();
+
+            if (oJson.PartnerType == '') {
+                MessageToast.show("Preencher o tipo de parceiro.");
+            } else {
+                oViewModel.setProperty("/busy", true);
+                oModel.create("/BusinessPatnerSet", oJson, {
+                    success: (oData) => {
+                        MessageBox.success(that.getText("msgBPCreated", [oData.PartnerId]), {
+                            title: that.getText("txtBPUpdated"),
+                            onClose: function () {
+                                that._getDialog().close();
+                                oViewModel.setProperty("/busy", false);
+                            }
+                        });
+                    },
+                    error: (e) => {
+                        MessageBox.error(that.getText("msgBPCrtError"), {
+                            title: that.getText("txtBPCrtError")
+                        });
+                    }
+                });
+            }
+        },
+
         /* =========================================================== */
         /* internal methods                                            */
         /* =========================================================== */
@@ -142,6 +196,17 @@ sap.ui.define([
             if (aTableSearchState.length !== 0) {
                 oViewModel.setProperty("/tableNoDataText", this.getResourceBundle().getText("worklistNoDataWithSearchText"));
             }
+        },
+
+        _getDialog: function () {
+            if (!this._oDialog) {
+                this._oDialog = sap.ui.xmlfragment("bpmaint01.bpmaint01.view.fragment.New", this);
+                this.getView().addDependent(this._oDialog);
+            }
+
+ 
+
+            return this._oDialog;
         }
 
     });
